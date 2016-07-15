@@ -1,12 +1,12 @@
+//udp  bass visualizer
+
 /*
-     Arduino - Processing WS2811 Spectrum Analyzer
-This program does an FFT for 20 - 60hz then sends the result to an arduino
-The signal being processed would be an input signal to the computer though the line in audio port
-More information, including full parts list and pictures of the final product can be seen or requested at www.12vtronix.com
-This program is part of the code used to drive the 16 x 64 RGB spectrum analyzer also found on www.12vtronix.com
-Based on http://processing.org/learning/libraries/forwardfft.html by ddf
-           Created: 12th Dec 2013 by Stephen Singh
-     Last Modified: 6th June 2015 by Nima Vasseghi
+     Arduino - Processing Wireless WS2811 Spectrum Analyzer
+This program does an FFT for 20 - 60hz then sends the result to a UDP stream (or multiple)
+The signal being processed would be an input signal to the computer though the line in audio port (default input device)
+
+     Based off of audio visualizer by Stephen Singh
+     Last Modified: 30th May 2016 by Nima Vasseghi
 */
 
  
@@ -14,9 +14,18 @@ import ddf.minim.analysis.*;
 import ddf.minim.*;
 import processing.serial.*; //library for serial communication
 import processing.net.*;
+import hypermedia.net.*;
  
-//Serial arduinoport;
-Server myServer;
+ //INSERT IP ADDRESS HERE:
+ String ip1 = "192.168.1.106";
+ String ip2 = null;
+ String ip3 = null;
+ 
+ 
+ 
+//Serial arduinoport; //serial
+//Server myServer;  //tcp
+UDP udp;  //udp
  
 Minim minim;
 AudioInput in;
@@ -51,8 +60,9 @@ void setup()
 
   minim = new Minim(this);
   printArray(Serial.list());
-  //arduinoport = new Serial(this, "/dev/tty.usbmodem1A131" , 115200); //set baud rate
-  myServer = new Server(this, 2222); 
+  //arduinoport = new Serial(this, "/dev/tty.usbmodem1A131" , 115200); //set baud rate, serial only
+  //myServer = new Server(this, 2222); //for tcp only
+  udp = new UDP(this, 2222); //udp
   
  
   in = minim.getLineIn(Minim.MONO,buffer_size,sample_rate);
@@ -85,9 +95,17 @@ freq_array = 0;
     String com = ",";
     String newl = "\n";
     String tosend = sta + ggg + newl;
-    //arduinoport.write(tosend); //send data to arduino
-    myServer.write(tosend);
-
+    
+   //For serial debugging:
+   //arduinoport.write(tosend); //send data to arduino, serial
+   // myServer.write(tosend); //tcp
+   
+   //Packets are sent here
+   udp.send(tosend, ip1, 2223);  //udp1
+   if(ip2!=null)
+   udp.send(tosend, ip2, 2223);  //udp2
+   if(ip3!=null)
+   udp.send(tosend, ip3, 2223);
 }
  
  
@@ -99,5 +117,3 @@ void stop()
  
   super.stop();
 }
-
-
