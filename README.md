@@ -28,3 +28,7 @@ Although many different hardware could work with minor tweaks, Below is what I h
 -Processing 2
 -WS2812 (neopixels)
 -Server and Reciever must be on same network
+
+Video:
+======================
+coming soon
