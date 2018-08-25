@@ -32,12 +32,9 @@ const int half = length/2;
 uint32_t half_array[half];
 
 
-
 void setup() {
   pinMode(LEDSTATUS_PIN, OUTPUT);
   pinMode(MODE_PIN, INPUT_PULLDOWN);
-
-
   digitalWrite(LEDSTATUS_PIN, LOW);
   
 
@@ -61,14 +58,12 @@ if(debug)
     half_array[i] = 0;
   }
   
-  
   strip.begin();
   strip.show();
 }
 //setup end
 
 void loop() {
-
     
     if(digitalRead(MODE_PIN)>0) //change mode
     {
@@ -81,7 +76,6 @@ void loop() {
       digitalWrite(LEDSTATUS_PIN, HIGH);
     }
 
-
   temp1 = temp1 - 50;
   average = temp1 * ((analogRead(A0)/2)/150);
   
@@ -91,8 +85,6 @@ void loop() {
   }
   
   average = constrain(average, 0 , 255);
-
-
   
   //Set the hue (0-255) and 24 bit color depending on left channel value
   byte stringoutput = average;
@@ -101,7 +93,6 @@ void loop() {
   uint32_t nimamiddlecolor = nimamiddleWheel(stringoutput);
 
 
-  
   //Shift the current values.
   for (int i = 0; i<half-1; i++)
   {
@@ -147,7 +138,6 @@ void loop() {
   
   
   //4*2 END
-
 
  if(length%2==1)
  {
