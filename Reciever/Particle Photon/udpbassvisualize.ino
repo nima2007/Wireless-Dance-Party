@@ -1,21 +1,20 @@
 // This #include statement was automatically added by the Particle IDE.
-#include "neopixel/neopixel.h"
-//Nima Vasseghi
+#include <neopixel.h>
 
+//Nima Vasseghi
 //jump pin A0 for different mode!
 //jump D5 for serial ip address (debug)
 
 //START user vars
-const int NEO_PIN = D2;
+const int NEO_PIN = D4;
 const int LEDSTATUS_PIN = D7;
 const int MODE_PIN = D0;
-const int DEBUG_PIN = D5;
-const int PIX_COUNT = 60;
+const int PIX_COUNT = 95;
+const bool debug = false;
 //END user vars
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIX_COUNT, NEO_PIN , WS2812B);
 
-unsigned int localport=2223;
 UDP udp;
 
 int colourpattern;
@@ -37,16 +36,25 @@ uint32_t half_array[half];
 void setup() {
   pinMode(LEDSTATUS_PIN, OUTPUT);
   pinMode(MODE_PIN, INPUT_PULLDOWN);
-  pinMode(DEBUG_PIN, INPUT_PULLDOWN);
 
-  
-  udp.begin(localport);
+
   digitalWrite(LEDSTATUS_PIN, LOW);
   
-  Serial.begin(9600);
-  Serial.println("Serial Activated");
 
-
+if(debug)
+{
+  Serial1.begin(9600);
+  Serial1.println("Debugging");
+  
+  IPAddress myIP = WiFi.localIP();
+  String ips = String(myIP[0]) + "." +
+                   String(myIP[1]) + "." +
+                   String(myIP[2]) + "." +
+                   String(myIP[3]);
+  Serial1.println("my local ip is "+ ips);
+}
+  
+  udp.begin(2223);
   
   for(int i=0; i<half;i++)
   {
@@ -60,7 +68,7 @@ void setup() {
 //setup end
 
 void loop() {
-    
+
     
     if(digitalRead(MODE_PIN)>0) //change mode
     {
@@ -72,14 +80,7 @@ void loop() {
       allsame = true;
       digitalWrite(LEDSTATUS_PIN, HIGH);
     }
-    if(digitalRead(DEBUG_PIN)>0) //for displaying ip
-    {
-        
-        Serial.println("printing ip now");
-        Serial.println(WiFi.localIP());
-    }
-    
-    
+
 
   temp1 = temp1 - 50;
   average = temp1 * ((analogRead(A0)/2)/150);
@@ -93,14 +94,13 @@ void loop() {
 
 
   
-  //Set the hue (0-255) and 24-bit color depending on left channel value
+  //Set the hue (0-255) and 24 bit color depending on left channel value
   byte stringoutput = average;
 
   uint32_t color = Wheel(stringoutput);
-   uint32_t nimamiddlecolor = nimamiddleWheel(stringoutput);
-  
+  uint32_t nimamiddlecolor = nimamiddleWheel(stringoutput);
 
-  //Serial.println(hue_left); //for debugging
+
   
   //Shift the current values.
   for (int i = 0; i<half-1; i++)
@@ -112,15 +112,41 @@ void loop() {
   //Fill in the new value at the end of each array
   half_array[half-1] = color;
   
-
-  
-  //Go through each Pixel on the strip and set its color
-  for (int i=0; i<half; i++)
+ //5*2 segments start
+ 
+   for (int i=0; i<9; i++)
   {
     //set pixel color
-    strip.setPixelColor(i, half_array[i]);
-    strip.setPixelColor(length-i-1, half_array[i]);
+    strip.setPixelColor(i, half_array[half-12-1]);
+    strip.setPixelColor(length-i-1, half_array[half-12-1]);
   }
+    for (int i=0; i<9; i++)
+  {
+    //set pixel color
+    strip.setPixelColor(i+9, half_array[half-9-1]);
+    strip.setPixelColor(length-i-1-9, half_array[half-9-1]);
+  }
+    for (int i=0; i<9; i++)
+  {
+    //set pixel color
+    strip.setPixelColor(i+9+9, half_array[half-6-1]);
+    strip.setPixelColor(length-i-1-9-9, half_array[half-6-1]);
+  }
+    for (int i=0; i<10; i++)
+  {
+    //set pixel color
+    strip.setPixelColor(i+9+9+9, half_array[half-3-1]);
+    strip.setPixelColor(length-i-1-9-9-9, half_array[half-3-1]);
+  }
+      for (int i=0; i<10; i++)
+  {
+    //set pixel color
+    strip.setPixelColor(i+9+9+9+10, half_array[half-1]);
+    strip.setPixelColor(length-i-1-9-9-9-10, half_array[half-1]);
+  }
+  
+  
+  //4*2 END
 
 
  if(length%2==1)
@@ -134,12 +160,20 @@ void loop() {
   
   int x = 0;
   double sum;
+  
+    //debug
+    
+    
   while (x < 1)
   {
     
-    
-   if(udp.parsePacket() >0 && udp.read() == 'M') {  
+   if(udp.parsePacket() > 0 && udp.read() == 'M') {  
     soundval = udp.parseInt();
+    
+    //debug
+    if(debug) Serial1.println("Here is the sound value...");
+    if(debug) Serial1.println(soundval);
+    
     x = x+1;
     sum = sum + soundval;
     }
@@ -177,7 +211,7 @@ uint32_t Wheel(byte WheelPos)
   }
 }
 
-//nima used for different middle color is numm of leds is odd
+// used for different middle color if num of leds is odd
 
 uint32_t nimamiddleWheel(byte WheelPos)
 {
